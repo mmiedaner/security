@@ -1,0 +1,56 @@
+{
+  "about": "This is a Zest script for scanning the response body for IP addresses (IPV4)",
+  "zestVersion": "0.3",
+  "title": "IP Address Scanner",
+  "description": "A passive rule for scanning for IP adresses",
+  "prefix": "",
+  "type": "Passive",
+  "parameters": {
+    "tokenStart": "{{",
+    "tokenEnd": "}}",
+    "tokens": {
+      "response.body": "",
+      "response.header": "",
+      "request.header": "",
+      "request.body": "",
+      "request.url": "",
+      "request.method": ""
+    },
+    "elementType": "ZestVariables"
+  },
+  "statements": [
+    {
+      "message": "Called for {{request.url}}",
+      "index": 2,
+      "elementType": "ZestActionPrint"
+    },
+    {
+      "rootExpression": {
+        "regex": "^(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$|^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})$",
+        "variableName": "response.body",
+        "caseExact": false,
+        "not": false,
+        "elementType": "ZestExpressionRegex"
+      },
+      "ifStatements": [
+        {
+          "message": "IP Address Disclosure",
+          "index": 1,
+          "elementType": "ZestActionFail"
+        }
+      ],
+      "elseStatements": [
+        {
+          "comment": "nothing found",
+          "index": 1,
+          "elementType": "ZestComment"
+        }
+      ],
+      "index": 3,
+      "elementType": "ZestConditional"
+    }
+  ],
+  "authentication": [],
+  "index": 0,
+  "elementType": "ZestScript"
+}
