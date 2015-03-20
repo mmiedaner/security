@@ -1,0 +1,61 @@
+{
+  "about": "This is a Zest script for scanning the response body for email addresses",
+  "zestVersion": "0.3",
+  "title": "Cross-domain resource include scanner script",
+  "description": "Scan Response Body for cross-domain resource includes",
+  "prefix": "",
+  "type": "Passive",
+  "parameters": {
+    "tokenStart": "{{",
+    "tokenEnd": "}}",
+    "tokens": {
+      "response.body": "",
+      "response.header": "",
+      "request.header": "",
+      "request.body": "",
+      "request.url": "",
+      "request.method": ""
+    },
+    "elementType": "ZestVariables"
+  },
+  "statements": [
+    {
+      "comment": "Passive scripts are called for every pair of requests and responses.",
+      "index": 1,
+      "elementType": "ZestComment"
+    },
+    {
+      "message": "Called for {{request.url}}",
+      "index": 2,
+      "elementType": "ZestActionPrint"
+    },
+    {
+      "rootExpression": {
+        "regex": "@import url\\(\\/\\/",
+        "variableName": "response.body",
+        "caseExact": false,
+        "not": false,
+        "elementType": "ZestExpressionRegex"
+      },
+      "ifStatements": [
+        {
+          "message": "cross-domain resource include detected in response body",
+          "index": 1,
+          "elementType": "ZestActionFail"
+        }
+      ],
+      "elseStatements": [
+        {
+          "comment": "nothing found",
+          "index": 1,
+          "elementType": "ZestComment"
+        }
+      ],
+      "index": 3,
+      "elementType": "ZestConditional"
+    }
+  ],
+  "authentication": [],
+  "index": 0,
+  "elementType": "ZestScript"
+}
