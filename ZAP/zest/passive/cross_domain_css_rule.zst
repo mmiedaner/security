@@ -31,7 +31,7 @@
     },
     {
       "rootExpression": {
-        "regex": "@import url\\(\\/\\/",
+        "regex": "@import url\\(\"\\/\\/",
         "variableName": "response.body",
         "caseExact": false,
         "not": false,
