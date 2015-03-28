@@ -1,4 +1,6 @@
-You have successfully created an Atlassian Plugin!
+This is a plugin for Atlassian Jira Version 4.4.1
+
+You need to install the SDK to build it. It will soon be updated.
 
 Here are the SDK commands you'll use immediately:
 
