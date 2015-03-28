@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Module>
+    <ModulePrefs title="__MSG_security-report-analyzer.name__"
+                 title_url=""
+                 directory_title="__MSG_security-report-analyzer.name__"
+                 description="__MSG_security-report-analyzer.description__"
+                 author="Markus Maria Miedaner"
+                 author_email="markusmiedaner@gmail.com"
+                 screenshot=''
+                 thumbnail=''
+            >
+        <Optional feature="gadget-directory">
+            <Param name="categories">
+                JIRA
+            </Param>
+        </Optional>
+        <Require feature="dynamic-height"/>
+        <Require feature="oauthpopup"/>
+        <Require feature="atlassian.util"/>
+        <Require feature="views"/>
+        <Require feature="setprefs"/>
+        #supportedLocales("gadget.common,security-report-analyzer")
+        #oauth
+    </ModulePrefs>
+
+    <UserPref name="isConfigured" datatype="hidden" default_value="false"/>
+    <Content type="html" view="profile">
+        <![CDATA[
+        #requireResource("com.atlassian.jira.gadgets:common")
+        #includeResources()
+        <div id="container">
+            <form  id="mainForm"  enctype="multipart/form-data" method="POST" action="__ATLASSIAN_BASE_URL__/secure/SecurityReportAnalyzerUpload.jspa">
+                <div id="container">
+                    <br></<br/>
+                    <div id="header_text_box" style="width: 90%; margin-left: 20px;">
+                        <div id="infotext" style="font-size: 11px; margin-top: 10px; margin-bottom: 10px;">
+                            __MSG_security-report-analyzer.infoText__
+                        </div>
+                    </div>
+                    <br></br>
+                    <div id="input_field_group" style="width: 90%; margin-left: 20px;">
+                        <table>
+                            <colgroup>
+                                <col width="64%"/>
+                                <col width="36%"/>
+                            </colgroup>
+                            <tbody>
+                                <tr style="margin-bottom: 15px;">
+                                    <td>
+                                       <span>__MSG_security-report-analyzer.targetProject__: </span>
+                                    </td>
+                                    <td>
+                                        <select id="projectIdId" name="projectId" style="width: 100%;"/>
+                                    </td>
+                                </tr>
+                                <tr style="padding-bottom: 15px;">
+                                    <td>
+                                        <span>__MSG_security-report-analyzer.targetVersion__: </span>
+                                    </td>
+                                    <td>
+                                        <select id="versionId" name="versionId" style="width: 100%;"/>
+                                    </td>
+                                </tr>
+                                <tr style="padding-bottom: 15px;">
+                                    <td>
+                                        <span>__MSG_security-report-analyzer.importReportType__: </span>
+                                    </td>
+                                    <td>
+                                        <select id="fileType" name="fileType" style="width: 100%;">
+                                            <option value="zap" >ZAP 2.0</option>
+                                            <option value="nessus" >NESSUS 5.0</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr style="padding-bottom: 15px;">
+                                    <td>
+                                        <span>__MSG_security-report-analyzer.falsePositiveResolution__: </span>
+                                    </td>
+                                    <td>
+                                        <select id="falsePositiveResolution" name="falsePosResolution" style="width: 100%;"/>
+                                    </td>
+                                </tr>
+                                <tr style="padding-bottom: 15px;">
+                                    <td>
+                                        <span>__MSG_security-report-analyzer.issueTypeToCreate__: </span>
+                                    </td>
+                                    <td>
+                                        <select id="preferredIssueType" name="preferredIssueType" style="width: 100%;"/>
+                                    </td>
+                                </tr>
+                                <tr style="padding-bottom: 15px;">
+                                    <td></td><td></td>
+                                </tr>
+                                <tr style="padding-bottom: 15px;">
+                                    <td>
+                                        <span>__MSG_security-report-analyzer.fileToImport__: </span>
+                                    </td>
+                                    <td>
+                                        <label value="__MSG_security-report-analyzer.searchFile__">
+                                            <input id="file" type="file" name="file" />
+                                        </label>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                   </br>
+                   </br>
+                   <div id="button_container" style="width: 90%; margin-left: 20px;">
+                       <div style="border-top: 1px solid #DDDDDD; clear: both; margin-bottom: 5px; margin-top: 15px; min-height: 2.7em; overflow: visible;">
+                            <div style="padding-bottom: 10px; padding-left: 140px;">
+                                <input style="font-size: 20px; height: 40px; width: 180px; margin: 20px 20px 40px 40px; padding: 0 0.5em;"  type="submit" value="__MSG_security-report-analyzer.uploadFile__">
+                            </div>
+                       </div>
+                   </div>
+            </form>
+        </div>
+            <script type="text/javascript">
+                (function(){
+                    var baseUrl =  "__ATLASSIAN_BASE_URL__";
+
+                    var gadget = AJS.Gadget({
+                        useOauth: "/rest/gadget/1.0/currentUser",
+                        baseUrl: "__ATLASSIAN_BASE_URL__",
+                        view: {
+                             template: function (args){
+                                var gadget = this;
+                                var baseUrl = AJS.$.ajaxSettings.baseUrl;
+
+                                function getProjects(){
+                                    AJS.$.ajax({
+                                        type:'GET',
+                                        contentType: 'application/json',
+                                        url: baseUrl + '/rest/api/2.0.alpha1/project',
+                                        success:function(data){
+                                            var control = AJS.$('#projectIdId');
+                                            for (var i = 0; i < data.length; i ++){
+                                                var option = AJS.$("<option/>").attr({
+                                                             value : data[i].key,
+                                                             id : data[i].key,
+                                                             text : data[i].name
+                                                      }).appendTo(control);
+                                            }
+                                            control.change(function(event){
+                                                getVersionsForProject(AJS.$(this).val());
+                                            });
+                                            getVersionsForProject(data[0].key);
+                                        }
+                                    });
+                                }
+
+                                function getVersionsForProject(projectKey){
+                                    AJS.$.ajax({
+                                        type:'GET',
+                                        contentType: 'application/json',
+                                        url: baseUrl + '/rest/api/2.0.alpha1/project/'+projectKey+'/versions',
+                                        success: function(data){
+                                            var control = AJS.$('#versionId');
+                                            for (var i=0; i < data.length; i++){
+                                                if (!data[i].released){
+                                                    var option = AJS.$("<option/>").attr({
+                                                                value: data[i].id,
+                                                                id: data[i].id,
+                                                                text: data[i].name
+                                                    }).appendTo(control);
+                                                }
+                                            }
+                                        }
+                                    });
+                                }
+
+                                function getResolutionForFalsePositive(){
+                                    AJS.$.ajax({
+                                        type : 'GET',
+                                        contentType: 'application/json',
+                                        url : baseUrl +  '/rest/SecurityReportAnalyzer/1.0/extension/resolution',
+                                        success : function(data){
+                                            var control = AJS.$('#falsePositiveResolution');
+                                            for (var i = 0; i < data.length; i++){
+                                                 var option = AJS.$("<option/>").attr({
+                                                        value: data[i].name,
+                                                        id: data[i].id,
+                                                        text : data[i].name
+                                                 }).appendTo(control);
+                                            }
+                                        }
+                                    });
+                                }
+
+                                function getIssueTypes(){
+                                    AJS.$.ajax({
+                                        type : 'GET',
+                                        contentType: 'application/json',
+                                        url : baseUrl +  '/rest/SecurityReportAnalyzer/1.0/extension/issueType',
+                                        success : function(data){
+                                            var control = AJS.$('#preferredIssueType');
+                                            for (var i = 0; i < data.length; i++){
+                                                var option = AJS.$("<option/>").attr({
+                                                            value : data[i].id,
+                                                            id : data[i].id,
+                                                            text : data[i].name
+                                                }).appendTo(control);
+                                            }
+                                        }
+                                    });
+                                }
+
+                                var getContainer = function() {
+                                    var container = AJS.$('#container').appendTo(gadget.getView().empty());
+                                    return function() {
+                                        return container;
+                                    }
+                                }();
+
+                                // var container = getContainer();
+
+                                getProjects();
+                                getResolutionForFalsePositive();
+                                getIssueTypes();
+                             }
+                        }
+                    });
+                })();
+            </script>
+        ]]>
+    </Content>
+</Module>

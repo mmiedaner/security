@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<atlassian-plugin key="${project.groupId}.${project.artifactId}" name="${project.name}" plugins-version="2">
+    <plugin-info>
+        <description>${project.description}</description>
+        <version>${project.version}</version>
+        <vendor name="${project.organization.name}" url="${project.organization.url}"/>
+    </plugin-info>
+
+    <!-- add our i18n resource -->
+    <resource type="i18n" name="i18n" location="SecurityReportAnalyzer"/>
+
+    <!-- add our web resources -->
+    <web-resource key="SecurityReportAnalyzer-resources" name="SecurityReportAnalyzer Web Resources">
+        <dependency>com.atlassian.auiplugin:ajs</dependency>
+        <context>jira.dashboard</context>
+        <transformaton extension="js">
+            <transformer key="jsI18n"/>
+        </transformaton>
+    </web-resource>
+
+    <!-- add webAction  -->
+    <webwork1 key="SecurityReportAnalyzerWebAction" name="SecurityReportAnalyzerWebAction"
+              i18n-name-key="SecurityReportAnalyzer.name">
+        <description key="SecurityReportAnalyzer.description">The test Plugin</description>
+        <actions>
+            <action name="com.blogspot.thinkingbeyondsecurity.SecurityReportAnalyzerWebAction"
+                    alias="SecurityReportAnalyzerUpload">
+                <view name="success">/templates/com/blogspot/thinkingbeyondsecurity/success.vm</view>
+                <view name="error">/templates/com/blogspot/thinkingbeyondsecurity/error.vm</view>
+            </action>
+        </actions>
+    </webwork1>
+
+    <!-- add the rest component for the gadget -->
+    <rest key="SecurityReportAnalyzer-rest" path="/SecurityReportAnalyzer" version="1.0">
+        <description>What ever may go here</description>
+    </rest>
+
+    <!-- import from the product container -->
+    <component-import key="applicationProperties" interface="com.atlassian.sal.api.ApplicationProperties"/>
+    <component-import key="constantsManager" interface="com.atlassian.jira.config.ConstantsManager"/>
+
+    <gadget name="SecurityReportAnalyzer" i18n-name-key="security-report-analyzer.name" key="security-report-analyzer"
+            location="gadgets/security-report-analyzer/gadget.xml">
+        <description key="security-report-analyzer.description">The SecurityReportAnalyzer Plugin</description>
+    </gadget>
+
+</atlassian-plugin>

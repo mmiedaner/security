@@ -1,0 +1,20 @@
+<head>
+    <meta name="decorator" content="atl.general">
+</head>
+<script>
+    AJS.$(window).load(
+        function(){
+            var content = AJS.$("<div/>");
+            var div1 = AJS.$("<div/>").attr({style: "margin-top: 140px; margin-left: 50px;"});
+            var text1 = "$i18n.getText("security-report-analyzer.importSuccess")";
+            div1.html(text1);
+            div1.appendTo(content);
+            var div2= AJS.$("<div/>").attr({style:"margin-left: 50px;"});
+            var text2 = "$i18n.getText("security-report-analyzer.pleaseReload")";
+            div2.html(text2);
+            div2.appendTo(content);
+            AJS.$('#jira').html(content);
+        }
+    );
+</script>
+
