@@ -1,85 +1,68 @@
 <!doctype html>
 <html lang="en">
-<head>
-    <title>Post Message Attack </title>
-    <link rel="stylesheet" href="./css/pmat.css"/>
-    <script src="./js/pmat.js"></script>
+<title>Post Message Attack </title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./js/jquery-2.1.4.min.js"></script>
+<script src="./js/bootstrap.min.js"></script>
+<script src="./js/pmat.js"></script>
+<link rel="stylesheet" href="./css/pmat.css"/>
+<link rel="stylesheet" href="./css/bootstrap.min.css"/>
 </head>
 <body>
-<div id="haed_container" style="width: 100%; height: 50px; margin-bottom: 5px;">
-    <span> <h1>Welcome to PostMessage Attack Tool (PMAT)</h1></span>
-</div>
-<br/>
-
-<div id="config_container" class="config_container">
-    <div id="left column" class="column">
-        <div id="targetHeadline">
-            <span>
-                <h2>Victim Configuration</h2>
-            </span>
+<div id="container" class="container">
+    <div id="headline" style="margin-bottom: 20px;">
+        <span > <h1>Welcome to PostMessage Attack Tool (PMAT)</h1></span>
+    </div>
+    <div class="row" style="margin-bottom: 20px;">
+        <div class="col-sm-8">
+            <span><h2>Target</h2></span>
+            <iframe id="victimFrame" src="" sandbox="allow-scripts allow-top-navigation allow-same-origin"
+                    class="victim_frame">
+            </iframe>
         </div>
-        <div id="content1" class="content">
-            <div id="targetUrlField">
-                <span class="label"> Target Url</span>
-                <input type="text" id="targetURL"/>
+        <div class="col-sm-4">
+            <div id="targetHeadline">
+                <h2>Configuration</h2>
             </div>
-            <div id="messageField">
-                <span class="label"> Message </span>
-                <input type="text" id="message"/>
+            <div id="content_row1" class="row">
+                <div id="targetUrlLabel" class="col-sm-4">
+                    <label for="targetURL"> Target URL</label>
+                    <label for="message"> Message </label>
+                    <label for="domain"> Domain </label>
+                    <label for="attackURL">Attack URL</label>
+                </div>
+                <div id="targetUrlField" class=col-sm-8">
+                    <input type="text" id="targetURL" value="https://www.rv24.de"/>
+                    <input type="text" id="message" value='{"version":"1.0.0.","type":"showIframe"}'/>
+                    <input type="text" id="domain" value="*"/>
+                    <input type="text" id="attackURL" value="https://www.rv24.de"/>
+                </div>
             </div>
-            <div id="domainField">
-                <span class="label"> Domain </span>
-                <input type="text" id="domain"/>
-            </div>
-        </div>
-        <div id="button_bar" class="button_bar">
-            <input type="button" value="load victim frame" onClick="loadFrame()"/> &nbsp;&nbsp;&nbsp;&nbsp;
-            <input type="button" value="send message" onclick="sendMessageToFrame()"/>
         </div>
     </div>
-    <div id="central_container" class="column">
-        <div id="headline">
-            <span>
-                <h2>Attack Configuration</h2>
-            </span>
+    <div class="row">
+        <div class="col-sm-8">
+            <span><h2>Log</h2></span>
+            <div id="console" class="console"></div>
         </div>
-        <div id="content2" class="content">
-            <div id="curDomainField">
-                <span class="label">Attack URL</span>
-                <input type="text" id="curDomain"/>
-            </div>
-        </div>
-        <div id="attack_button_bar" class="button_bar">
-            <input type="button" value="load attack frame" onclick="setCurrentDomain()" style="float:bottom;"/>
+        <div class="col-sm-4">
+            <span><h2>Controls</h2></span>
+            <input type="button" value="load frames" onclick="pmat.loadFrames()"/> &nbsp;&nbsp;&nbsp;&nbsp;
+            <input type="button" value="send message" onclick="pmat.sendMessageToFrame()"/>
         </div>
     </div>
-    <div id="right_container" class="column">
-        <div>
-            <span>
-                <h2>Manual</h2>
-            </span>
+    <div class="row">
+        <div class="col-sm-12">
+            <h2>Manual</h2>
+            This tool helps you to demonstrate incorrect or missing validation of calls received via
+            the window.postMessage() command.
+            This page contains two iframes which can be separately loaded. Note the attack frame will not be visible,
+            since it will not change anyway.
+            Now load both frames, configure the message you want to send and fire up a debugger for the victim.
         </div>
-        <div>
-            <span>This tool helps you to demonstrate incorrect or missing validation of calls received via
-                the window.postMessage() command.</span>
-        <span>This page contains two iframes which can be separately loaded. Note the attack frame will not be visible,
-            since it will not change anyway.</span>
-            <span>Now load both frames, configure the message you want to send and fire up a debugger for the victim.</span>
+        <div >
+            <iframe id="attackFrame" src="" class="attack_frame"></iframe>
         </div>
     </div>
-</div>
-<br/>
-
-<div id="console" class="console"></div>
-<br/>
-
-<div>
-    <iframe id="attackFrame" src="" class="attack_frame"></iframe>
-</div>
-<div>
-    <iframe id="victimFrame" src="" sandbox="allow-form allow-scripts allow-top-navigation" class="victim_frame">
-    </iframe>
-</div>
 </body>
 </html>
-

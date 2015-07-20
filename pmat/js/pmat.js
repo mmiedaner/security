@@ -1,28 +1,36 @@
-function loadFrame(){
-    var targetUrl = document.getElementById('targetURL').value;
-    document.getElementById('victimFrame').src=targetUrl;
-}
+var pmat = {
 
-function sendMessageToFrame(){
-    var url = document.getElementById('targetURL').value;
-    var message = document.getElementById('message').value;
-    appendToConsole("Sending: " + message + " to: "+ url);
-    var attackFrame = document.getElementById("attackFrame");
-    attackFrame.contentWindow.postMessage(message, url);
+    loadFrames: function(){
+        var targetUrl = $('#targetURL').val();
+        $('#victimFrame').attr('src',targetUrl);
+        var attackURL = $('#attackURL').val();
+        var attackFrame = $('#attackFrame');
+        attackFrame.attr('src', attackURL);
+    },
 
-}
+    sendMessageToFrame: function(){
+        var url = $('#targetURL').val();
+        var message = $('#message').val();
+        this.appendToConsole("Sending: " + message + " to: "+ url);
 
-function appendToConsole(newLogMessage){
-    var logMessage = document.getElementById('console').innerHTML.toString();
-    if (logMessage.length > 6){
-        logMessage = logMessage + "<br/>"
+        var attackFrame = $("#attackFrame").get(0);
+        if (attackFrame != undefined){
+            attackFrame.contentWindow.postMessage(message, url);
+        }
+        else{
+            this.contentWindow.postMessage(message, url);
+        }
+    },
+
+    appendToConsole: function(newLogMessage){
+        var logMessage = $('#console').html().toString();
+        if (logMessage.length > 6){
+            logMessage = logMessage + "<br/>"
+        }
+        logMessage = logMessage + newLogMessage;
+        $('#console').html(logMessage);
+    },
+
+    setCurrentDomain: function(){
     }
-    logMessage = logMessage + newLogMessage;
-    document.getElementById('console').innerHTML = logMessage;
-}
-
-function setCurrentDomain(){
-    var curDomain = document.getElementById('curDomain').value;
-    var attackFrame = document.getElementById('attackFrame');
-    attackFrame.src = curDomain;
 }
