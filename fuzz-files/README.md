@@ -1,4 +1,4 @@
-### Fuzz Files
+# Fuzz Files
 Within this directory you will find various files usefull for fuzz-testing. You may use the files as direct input to your fuzzing tool.
 
 ## JAVA

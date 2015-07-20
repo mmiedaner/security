@@ -1,4 +1,4 @@
-### This directory includes various files to be used with ZAP
+# This directory includes various files to be used with ZAP
 
 ## automation
 Within this directory you will find various files to automate ZAP for scanning your applications.
