@@ -31,6 +31,14 @@ var pmat = {
         $('#console').html(logMessage);
     },
 
+<<<<<<< HEAD:pmat/js/pmat.js
     setCurrentDomain: function(){
     }
 }
+=======
+function setCurrentDomain(){
+    var curDomain = document.getElementById('curDomain').value;
+    var attackFrame = document.getElementById('attackFrame');
+    attackFrame.src = curDomain;
+}
+>>>>>>> f5c5a0e558cf370e742f6c9256a7bc75667c22eb:pmat2/js/pmat.js
