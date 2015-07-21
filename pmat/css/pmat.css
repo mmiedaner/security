@@ -28,13 +28,7 @@
     overflow: auto;
 }
 
-.attack_frame{
-    width: 0px;
-    height: 0px;
-    visibility:hidden;
-}
-
-.victim_frame{
+.pmat_frame{
     width: 99%;
     height: 200px;
 }
@@ -45,4 +39,8 @@
 
 input[type=text] {
     width: 60%;
+}
+
+.hidden{
+    visibility: hidden;
 }

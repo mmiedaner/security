@@ -1,24 +1,27 @@
 var pmat = {
 
-    loadFrames: function(){
-        var targetUrl = $('#targetURL').val();
-        $('#victimFrame').attr('src',targetUrl);
-        var attackURL = $('#attackURL').val();
-        var attackFrame = $('#attackFrame');
-        attackFrame.attr('src', attackURL);
+    loadFrame: function(frame){
+        if (frame == "victim"){
+            var targetUrl = $('#targetURL').val();
+            $('#victimFrame').attr('src',targetUrl);
+        }
+        else{
+            var attackURL = $('#attackURL').val();
+            $('#attackFrame').attr('src', attackURL);
+        }
     },
 
-    sendMessageToFrame: function(){
+    sendMessage: function(frame){
         var url = $('#targetURL').val();
         var message = $('#message').val();
-        this.appendToConsole("Sending: " + message + " to: "+ url);
+        this.appendToConsole("Sending: " + message + " to: "+ url + " from: " + frame + " frame");
 
         var attackFrame = $("#attackFrame").get(0);
-        if (attackFrame != undefined){
+        if (frame == "attack"){
             attackFrame.contentWindow.postMessage(message, url);
         }
         else{
-            this.contentWindow.postMessage(message, url);
+            $('#internalIFrame').get(0).contentWindow.postMessage(message, url);
         }
     },
 
@@ -29,16 +32,5 @@ var pmat = {
         }
         logMessage = logMessage + newLogMessage;
         $('#console').html(logMessage);
-    },
-
-<<<<<<< HEAD:pmat/js/pmat.js
-    setCurrentDomain: function(){
     }
 }
-=======
-function setCurrentDomain(){
-    var curDomain = document.getElementById('curDomain').value;
-    var attackFrame = document.getElementById('attackFrame');
-    attackFrame.src = curDomain;
-}
->>>>>>> f5c5a0e558cf370e742f6c9256a7bc75667c22eb:pmat2/js/pmat.js
