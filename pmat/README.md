@@ -25,3 +25,6 @@ And that's it ;)
 
 Of course you may as well send a message from the page itself in this scenario 
 - simply use the other "Send message" button.
+
+And finally you may include the script to send messages into the attack frame you
+load and avoid the "Send message" buttons completely - that's up to you.
