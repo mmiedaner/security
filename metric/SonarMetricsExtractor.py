@@ -3,6 +3,13 @@ import json
 import argparse
 import sys
 
+fileName = None
+repo = None
+language = None
+mainURL = None
+separator = None
+tags = None
+
 
 def write_statusmessage(messageid, i, maximum):
     sys.stdout.write('\r Collecting issues for key: ' + messageid + ' - page ' + str(i) + ' of ' + str(maximum))
@@ -17,16 +24,45 @@ def make_apicall(connection, method, apistring):
     return data
 
 
-def get_rulekeys(connection):
+def get_rulekeys_by_repo(connection):
     url = '/sonar/api/profiles?language=' + language
     service_answer = make_apicall(connection, "GET", url)
-    squid = []
+    squid = set()
     for profile in service_answer:
         if 'rules' in profile:
             for rule in profile['rules']:
                 for repos in repo:
                     if rule['repo'] == repos:
-                        squid.append(repos + ":" + rule['key'])
+                        key_string = repos + ":" + rule['key']
+                        squid.add(key_string)
+    return squid
+
+
+def extract_keys_from_response(service_answer, squid):
+    if 'rules' in service_answer:
+        rules = service_answer['rules']
+        for rule in rules:
+            if 'key' in rule:
+                squid.add(rule['key'])
+    return squid
+
+def get_rulekeys_by_tag(connection):
+    tag_string = ""
+    for tag in tags:
+        tag_string += str(tag) + ","
+    url = '/sonar/api/rules/search?language=' + language + '&tags=' + tag_string
+    service_answer = make_apicall(connection, "GET", url)
+
+    squid = set()
+    squid = extract_keys_from_response(service_answer, squid)
+
+    if 'total' in service_answer and service_answer['total'] > 1:
+        p = 1
+        while p < service_answer['total']:
+            p += 1
+            url2 = url + "&p=" + str(p)
+            service_answer2 = make_apicall(connection, "GET", url2)
+            squid = extract_keys_from_response(service_answer2, squid)
     return squid
 
 
@@ -56,20 +92,20 @@ def get_issues_for_squid(connection, squid_id):
 
 
 def map_args_to_global_vars(args):
+    global fileName
     if args.out:
-        global fileName
         fileName = args.out
 
+    global repo
     if args.repo:
-        global repo
         repo = args.repo
 
+    global language
     if args.lang:
-        global language
         language = args.lang
 
+    global mainURL
     if args.baseurl:
-        global mainURL
         mainURL = args.baseurl
 
     global separator
@@ -77,6 +113,20 @@ def map_args_to_global_vars(args):
         separator = args.separator
     else:
         separator = "\t"
+
+    global tags
+    if args.tags:
+        tags = args.tags
+
+
+def validate_args(arguments):
+    if arguments.tags and arguments.repo:
+        print 'You need to specify either a repositories or tags to search for issues'
+        exit(1)
+
+    if not arguments.tags and not arguments.repo:
+        print 'You need to specify either a repositories or tags to search for issues'
+        exit(1)
 
 
 def parse_commandline_paramters():
@@ -87,7 +137,9 @@ def parse_commandline_paramters():
     parser.add_argument('--lang', metavar='lang', help='progamming language used in projects')
     parser.add_argument('--baseurl', metavar='burl', help='base url of sonarqube server')
     parser.add_argument('--separator', metavar='sepa', help='separator used - defaults to tab')
+    parser.add_argument('--tags', metavar='tags', help='either specify tags or a repository to search rules', nargs='+')
     args = parser.parse_args()
+    validate_args(args)
     map_args_to_global_vars(args)
 
 
@@ -125,7 +177,10 @@ def write_to_file(file_to_write_to, issuelist):
 ##
 parse_commandline_paramters()
 conn = httplib.HTTPSConnection(mainURL)
-result = get_rulekeys(conn)
+if repo is not None:
+    result = get_rulekeys_by_repo(conn)
+else:
+    result = get_rulekeys_by_tag(conn)
 print str(len(result)) + ' Rules to check. \n'
 
 output_file = None
