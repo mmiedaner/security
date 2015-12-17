@@ -26,12 +26,12 @@ def get_rulekeys(connection):
             for rule in profile['rules']:
                 for repos in repo:
                     if rule['repo'] == repos:
-                        squid.append(rule['key'])
+                        squid.append(repos + ":" + rule['key'])
     return squid
 
 
 def get_issues_for_squid(connection, squid_id):
-    url = "/sonar/api/issues/search?squid=" + squid_id + "&pageSize=-1"
+    url = "/sonar/api/issues/search?rules=" + squid_id + "&pageSize=-1"
     service_answer = make_apicall(connection, "GET", url)
     issuelist = []
     if 'issues' in service_answer:
