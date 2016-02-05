@@ -8,6 +8,7 @@ group_list = None
 output_name = None
 sheet_name = None
 
+
 def parser_arguments():
     parser = argparse.ArgumentParser(
         description='Collect issue statistics from sonarquebe based on repositories of rules.')
@@ -16,7 +17,7 @@ def parser_arguments():
     parser.add_argument('--append', metavar='append', help='append onto outputfile [yes | no]')
     parser.add_argument('--cregex', metavar='regex', help='regex to match against componentnames', nargs='+')
     parser.add_argument('--groups', metavar='regex', help='name for group to name for result', nargs='+')
-    parser.add_argument('--sheetname', metarv='sheet', help='name of the sheet that should be analyzed')
+    parser.add_argument('--sheetname', metavar='sheet', help='name of the sheet that should be analyzed')
     args = parser.parse_args()
 
     global file_name
@@ -30,9 +31,10 @@ def parser_arguments():
 
     global output_name
     output_name = args.output
-    
+
     global sheet_name
-    sheet_anem = args.sheetname
+    sheet_name = args.sheetname
+
 
 def get_metrics_from_excel(excel_input, regex_list, group_list):
     df_out = pandas.DataFrame(columns=('Name', 'Severity', 'Count'))
@@ -66,9 +68,9 @@ def get_metrics_from_excel(excel_input, regex_list, group_list):
             df_intermediate = df_out
             step = j * 4
             df_out = df_out.append(DataFrame(content, columns=('Name', 'Severity', 'Count'),
-                                 index=[j + step, j + step + 1, j + step + 2, j + step + 3, j + step + 4]))
+                                             index=[j + step, j + step + 1, j + step + 2, j + step + 3, j + step + 4]))
         j += 1
-    
+
     return df_out
 
 ## Main Method
