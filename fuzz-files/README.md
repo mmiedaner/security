@@ -7,3 +7,6 @@ Fuzzing input files focussing on fuzzing JAVA applications
 ## JSON
 Fuzzing input files focussing on fuzzing JSON handling applications
 
+## Tools
+This directory contains files used to create fuzzing input
+
