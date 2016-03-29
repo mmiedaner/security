@@ -1,18 +1,13 @@
 {
     "sessionPath":"__path_where_session_files_shall_be_stored",
-    "reportType":"HTML",
+    "reportType":"_valid_options: XML, HTML, Custom",
+    "http-proxy": "",
+    "https-proxy": "",
     "reportDir":"__directory_to_store_report_files_within",
     "target":[
             {"url":"__url_to_scan", "sessionName":"__name_of_the_session_to_be_created", "respider":"0", "selenium":"__selenium_scripts_to_be_executed_before_scan-optional"}
         ],
     "falsePositive":[
-            {"pluginid":"", "param":"", "evidence":"", "alert":""}
-        ],
-    "raiseAlertItem":[
-            {"pluginid":"", "param":"", "evidence":"", "alert":"", 
-             "riskcode":"", "reliability":""}
-        ],
-    "lowerAlertItem":[
-            {"pluginid":"", "param":"", "evidence":"", "alert":"", "riskcode":"", "reliablity":""}
+            {"url":"", "param":"", "evidence":"", "alert":""}
         ]
 }
