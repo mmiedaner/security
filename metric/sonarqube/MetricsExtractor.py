@@ -3,12 +3,17 @@ import json
 import argparse
 import sys
 
+import pandas
+
+
 fileName = None
 repo = None
 language = None
 mainURL = None
 separator = None
 tags = None
+excel = None
+date_separator = None
 
 
 def write_statusmessage(messageid, i, maximum):
@@ -45,6 +50,7 @@ def extract_keys_from_response(service_answer, squid):
             if 'key' in rule:
                 squid.add(rule['key'])
     return squid
+
 
 def get_rulekeys_by_tag(connection):
     tag_string = ""
@@ -118,6 +124,14 @@ def map_args_to_global_vars(args):
     if args.tags:
         tags = args.tags
 
+    global excel
+    if args.excel:
+        excel = args.excel
+
+    global date_separator
+    if args.date_separator:
+        date_separator = args.date_separator
+
 
 def validate_args(arguments):
     if arguments.tags and arguments.repo:
@@ -132,12 +146,19 @@ def validate_args(arguments):
 def parse_commandline_paramters():
     parser = argparse.ArgumentParser(
         description='Collect issue statistics from sonarquebe based on repositories of rules.')
-    parser.add_argument('--out', metavar='file', help='file to write output to')
+
+
     parser.add_argument('--repo', metavar='repo', help='name of repository to query', nargs='+')
     parser.add_argument('--lang', metavar='lang', help='progamming language used in projects')
     parser.add_argument('--baseurl', metavar='burl', help='base url of sonarqube server')
     parser.add_argument('--separator', metavar='sepa', help='separator used - defaults to tab')
     parser.add_argument('--tags', metavar='tags', help='either specify tags or a repository to search rules', nargs='+')
+    parser.add_argument('--date_separator', metavar="splitdate",
+                        help="Separator used to split dates, default = no split")
+
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--out', metavar='file', help='file to write output to')
+    group.add_argument('--excel',metavar='excel', help='Write output as excel with provided filename')
     args = parser.parse_args()
     validate_args(args)
     map_args_to_global_vars(args)
@@ -156,6 +177,10 @@ def generate_lineitem(issue):
                     component_string = str(issue[str(element)])
                     components = component_string.split(":")
                     body += components[1].title() + separator + component_string + separator
+                elif (element == 'creationDate' or element == 'updateDate') and date_separator is not None:
+                    element_string = str(issue[str(element)])
+                    date_string = element_string.split(date_separator)
+                    body += date_string[0].title() + separator + date_string[1].title() + separator
                 else:
                     body += str(issue[str(element)]) + separator
 
@@ -164,7 +189,11 @@ def generate_lineitem(issue):
         except UnicodeEncodeError:
             body += " " + separator
     body += " \n"
-    return body
+    if excel is None:
+        return body
+    else:
+        result = list(body.split(separator))
+        return result
 
 
 def write_to_file(file_to_write_to, issuelist):
@@ -184,23 +213,49 @@ else:
 print str(len(result)) + ' Rules to check. \n'
 
 output_file = None
-try:
-    output_file = open(fileName, "wb+")
-except IOError:
-    print 'Could not open file - exiting'
-    exit(0)
+if excel is None:
+    try:
+        output_file = open(fileName, "wb+")
+    except IOError:
+        print 'Could not open file - exiting'
+        exit(0)
 
-header = 'status' + separator + 'line' + separator + 'creationDate' + separator + 'fUpdateAge' + separator \
-         + 'severity' + separator + 'componentName' + separator + 'component' + separator + 'rule' + separator \
-         + 'project' + separator + 'updateDate' + separator + 'key' + separator + 'message' + separator + 'debt' \
-         + separator + 'componentId\n'
-output_file.write(header)
+header = ""
+if date_separator is None:
+    header = 'status' + separator + 'line' + separator + 'creationDate' + separator + 'fUpdateAge' + separator \
+             + 'severity' + separator + 'componentName' + separator + 'component' + separator + 'rule' + separator \
+             + 'project' + separator + 'updateDate' + separator + 'key' + separator + 'message' + separator + 'debt' \
+             + separator + 'componentId\n'
+else:
+    header = 'status' + separator + 'line' + separator + 'creationDate' + separator + 'creationTime' + separator + \
+             'fUpdateAge' + separator + 'severity' + separator + 'componentName' + separator + 'component' + separator \
+             + 'rule' + separator + 'project' + separator + 'updateDate' + separator + 'updateTime' + separator + 'key' \
+             + separator + 'message' + separator + 'debt' + separator + 'componentId\n'
+
+lineitem_list = []
+
+if excel is None:
+    output_file.write(header)
 
 for key in result:
     issues = get_issues_for_squid(conn, key)
     if issues is not None:
-        write_to_file(output_file, issues)
+        if excel is None:
+            write_to_file(output_file, issues)
+        else:
+            for issue in issues:
+                lineitem_list.append(generate_lineitem(issue))
+                ## TODO handle memory overflow
 
-output_file.close()
+if excel is None:
+    output_file.close()
+else:
+    columns = header.split(separator)
+    columns.append('')
+    if len(lineitem_list) != 0:
+        df = pandas.DataFrame(lineitem_list, columns=columns)
+        df.to_excel(excel, sheet_name='sheet1', index=False)
+        ## TODO handle number of rows exceeded
+
 print "\n Done!"
 exit(0)
