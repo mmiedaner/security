@@ -3,13 +3,8 @@ import xml.etree.ElementTree
 
 source_dir = '' #TODO place your source dir here
 
-
-def write_line_to_file(file, line):
-    file.write(line)
-
-
-def read_files(nameOfFile, file):
-    root = xml.etree.ElementTree.parse(nameOfFile).getroot()
+def read_files(name_of_file, report_data):
+    root = xml.etree.ElementTree.parse(name_of_file).getroot()
     project_name = None
     report_date = None
 
@@ -25,6 +20,7 @@ def read_files(nameOfFile, file):
     for dependencies in root.findall('{https://www.owasp.org/index.php/OWASP_Dependency_Check#1.2}dependencies'):
 
         for dep in dependencies.iter('{https://www.owasp.org/index.php/OWASP_Dependency_Check#1.2}dependency'):
+
             file_name = None
             fn = dep.find('{https://www.owasp.org/index.php/OWASP_Dependency_Check#1.2}fileName')
             if fn is not None:
@@ -55,21 +51,21 @@ def read_files(nameOfFile, file):
                     description = desc.text
 
                 if vuln_name is not None:
-                    line_item = project_name + "\t" + report_date + "\t" + file_name + "\t" + vuln_name + "\t" \
-                                + cvss_score.replace(".", ",") + "\t" + cwe + "\t" + description + "\n"
-                    write_line_to_file(file, line_item)
+                    line_item = [project_name, report_date, file_name, vuln_name, cvss_score.replace(".", ","), cwe,
+                                 description]
+                    report_data.append(line_item)
 
 
-def analyse_xml_reports(sourcedir, f):
+def analyse_xml_reports(sourcedir):
+    report_data = []
     for root, dirs, files in os.walk(sourcedir):
         for file in files:
             if file.endswith(".xml"):
                 print 'reading: ' + os.path.join(root, file)
-                read_files(os.path.join(root, file), f)
+                read_files(os.path.join(root, file), report_data)
+    return report_data
 
 
-f = file('nexus_metrics.csv', 'w')
-headerLine = 'projectName\treportDate\tfileName\tvulnname\tcvssScore\tcwe\tdescription\n'
-write_line_to_file(f, headerLine)
-analyse_xml_reports(source_dir, f)
-f.close()
+headerLine = ["projectName", "reportDate", "fileName", "vulnname", "cvssScore", "cwe", "description"]
+df = pandas.DataFrame(analyse_xml_reports(source_dir), columns=headerLine)
+df.to_excel("owasp_dependency_metrics.xls")
