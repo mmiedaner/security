@@ -1,5 +1,6 @@
 import os
 import xml.etree.ElementTree
+import pandas
 
 source_dir = '' #TODO place your source dir here
 
