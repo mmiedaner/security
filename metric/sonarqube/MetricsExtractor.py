@@ -2,7 +2,6 @@ import httplib
 import json
 import argparse
 import sys
-
 import pandas
 
 
@@ -147,7 +146,6 @@ def parse_commandline_paramters():
     parser = argparse.ArgumentParser(
         description='Collect issue statistics from sonarquebe based on repositories of rules.')
 
-
     parser.add_argument('--repo', metavar='repo', help='name of repository to query', nargs='+')
     parser.add_argument('--lang', metavar='lang', help='progamming language used in projects')
     parser.add_argument('--baseurl', metavar='burl', help='base url of sonarqube server')
@@ -158,7 +156,7 @@ def parse_commandline_paramters():
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--out', metavar='file', help='file to write output to')
-    group.add_argument('--excel',metavar='excel', help='Write output as excel with provided filename')
+    group.add_argument('--excel', metavar='excel', help='Write output as excel with provided filename')
     args = parser.parse_args()
     validate_args(args)
     map_args_to_global_vars(args)
@@ -201,11 +199,42 @@ def write_to_file(file_to_write_to, issuelist):
         line_item = generate_lineitem(issue)
         file_to_write_to.write(line_item)
 
+
+def get_lines_of_code_per_project(connection):
+    service_answer = make_apicall(connection, "GET", "/sonar/api/resources?metrics=ncloc,coverage")
+    lines_of_code_dictionary = []
+
+    project_name = ""
+    lines_of_code = ""
+    project_key = ""
+    for service_item in service_answer:
+        item = {}
+        if service_item['name']:
+            project_name = service_item['name']
+
+        if service_item['key']:
+            project_key = service_item['key']
+
+        if 'msr' in service_item.keys():
+            measures = service_item['msr']
+
+            for measure in measures:
+                if 'key' in measure.keys():
+                    if measure['key'] == "ncloc":
+                        lines_of_code = measure['val']
+
+        item = {'project_name': project_name, 'lines_of_code': lines_of_code, 'project_key': project_key}
+        lines_of_code_dictionary.append(item)
+
+    return lines_of_code_dictionary
+
+
 ##
 ## main routine
 ##
 parse_commandline_paramters()
 conn = httplib.HTTPSConnection(mainURL)
+
 if repo is not None:
     result = get_rulekeys_by_repo(conn)
 else:
@@ -256,6 +285,11 @@ else:
         df = pandas.DataFrame(lineitem_list, columns=columns)
         df.to_excel(excel, sheet_name='sheet1', index=False)
         ## TODO handle number of rows exceeded
+
+locDict = get_lines_of_code_per_project(conn)
+df2 = pandas.DataFrame(locDict, columns=['project_name', 'lines_of_code', 'project_key'])
+file_name_parts = excel.split('.')
+df2.to_excel(file_name_parts[0] + "_loc." + file_name_parts[1], sheet_name='sheet1', index=False)
 
 print "\n Done!"
 exit(0)
