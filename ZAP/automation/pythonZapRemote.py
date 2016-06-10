@@ -16,8 +16,8 @@ def load_config():
     if args.config and args.config is not None:
         with open(args.config) as config_file:
             config = json.load(config_file)
-	    return config
-    elif args.urls and args.urls is not None:
+
+    else:
         targets = []
         i = 0
         for url in args.urls:
@@ -26,11 +26,8 @@ def load_config():
             targets.append(targeturl)
             i += 1
 
-        config = {'falsePositive': [], 'reportDir': '.', 'target': targets, 'sessionPath': '.'}
-    	return config
-    else:
-	print "you need to specify either --urls or --config as parameters."
-	exit(1)
+        config = {'falsePositive': [], 'reportDir': '..', 'target': targets, 'sessionPath': '..'}
+    return config
 
 
 #set up environment for scanning
@@ -46,11 +43,11 @@ def setup_env(config):
 def spider(url):
     print 'Starting Spider'
     zap.spider.scan(url)
-    time.sleep(5)
+    time.sleep(2)
     while int(zap.spider.status()) < 100:
-        sys.stdout.write("\rSpider progress: " + zap.spider.status() + "%")
+        sys.stdout.write("\rSpider progress: " + zap.spider.status + "%")
         sys.stdout.flush()
-        time.sleep(5)
+        time.sleep(2)
     print '\nSpider completed'
     time.sleep(5)
 
@@ -58,9 +55,8 @@ def spider(url):
 def scan(url):
     print 'Scanning target: %s' % url
     zap.ascan.scan(url)
-    time.sleep(5)
     while int(zap.ascan.status()) < 100:
-        sys.stdout.write("\rScan status: " + zap.ascan.status() + "%")
+        sys.stdout.write("\rScan status: " + zap.ascan.status + "%")
         sys.stdout.flush()
         time.sleep(5)
     print '\nScan completed.'
@@ -69,26 +65,27 @@ def scan(url):
 # do the actual scan
 def do_scan(target_data):
     print 'Creating session %s' % target_data["sessionName"]
-    zap.core.new_session(configuration["sessionPath"] + '/' + target_data["sessionName"])
+    zap.core.new_session(configuration["sessionPath"] + '\\' + target_data["sessionName"])
 
     print 'Accessing target %s' % target_data["url"]
     zap.urlopen(target_data["url"])
-    time.sleep(5)
+    time.sleep(2)
 
-    spider(target_data['url'])
+    spider(target['url'])
 
-    if target_data['scan'] and target_data['scan'] == "true":
-        scan(target_data['url'])
+    if target['scan'] and target['scan'] is True:
+        scan(target['url'])
 
-    if target_data['respider'] and target_data['respider'] == "true":
-        spider(target_data['url'])
+    if target['respider'] and target['respider'] is True:
+        spider(target['url'])
 
     return
 
 
 def generate_report(target_data):
     print 'Generating reports:'
-    report, extension = ""
+    report = ""
+    extension = ""
 
     if configuration['reportType'] == "HTML":
         report = zap._request_other(zap.base_other + 'core/other/htmlreport/', {'apikey': None})
@@ -97,7 +94,7 @@ def generate_report(target_data):
         report = zap.core.xmlreport
         extension = ".xml"
 
-    with open(configuration["reportDir"] + '/Report_' + target_data["sessionName"] + extension, 'w') as text_file:
+    with open(configuration["reportDir"] + '\\Report_' + target_data["sessionName"] + extension, 'w') as text_file:
         text_file.write(report)
         text_file.close()
 
@@ -107,8 +104,9 @@ def generate_report(target_data):
 def parse_args():
     parser = argparse.ArgumentParser(description='Start ZAP and scan web apps.')
     group = parser.add_mutually_exclusive_group()
-    group.add_argument('--config', help='full path to and name of config file.')
-    group.add_argument('--urls', help='space separated list of urls to be scanned.', nargs='+')
+    group.add_argument('--config', metavar='config', help='config file to use')
+    group.add_argument('--urls', metavar='url', help='space separated list of urls to scan', nargs='+')
+    parser.add_argument('--setssion', metavar='session', help='session file to start from')
 
     global args
     args = parser.parse_args()
@@ -195,9 +193,24 @@ print 'Initializing ZAPClient'
 if 'http-proxy' in configuration and configuration['http-proxy'] != "" and 'https-proxy' in configuration and \
                 configuration['https-proxy'] != "":
     proxy_data = {'http': configuration['http-proxy'], 'https': configuration['https-proxy']}
-    zap = ZAPv2().__setattr__("proxies", json.dumps(proxy_data))
+    zap = ZAPv2(proxies={'http': 'http://10.198.37.50:1171', 'https': 'http://10.198.37.50:1171'})
 else:
     zap = ZAPv2()
+
+if args.session != None:
+    print "loading session"
+    zap.core.load_session(args.session)
+    sites = zap.core.sites
+    url = sites[len(sites)-1]
+    print "scanning url: " + url
+    scan(url)
+    report = zap._request_other(zap.base_other + 'core/other/htmlreport/', {'apikey': None})
+    extension = ".html"
+    with open(args.session + extension, 'w') as text_file:
+        text_file.write(report)
+        text_file.close()
+    print "Done writing report"
+    exit(0)
 
 # Loop over all targets, spider them, scan them and generate reports
 for target in configuration["target"]:
