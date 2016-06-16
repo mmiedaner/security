@@ -1,8 +1,11 @@
 import os
 import xml.etree.ElementTree
+
 import pandas
 
-source_dir = '' #TODO place your source dir here
+
+source_dir = '' # add your source directory for xml/html export from owasp dependency checker here.
+
 
 def read_files(name_of_file, report_data):
     root = xml.etree.ElementTree.parse(name_of_file).getroot()
@@ -17,6 +20,8 @@ def read_files(name_of_file, report_data):
         rd = pi.find('{https://www.owasp.org/index.php/OWASP_Dependency_Check#1.2}reportDate')
         if rd is not None:
             report_date = rd.text
+
+    item_count = len(report_data)
 
     for dependencies in root.findall('{https://www.owasp.org/index.php/OWASP_Dependency_Check#1.2}dependencies'):
 
@@ -45,7 +50,7 @@ def read_files(name_of_file, report_data):
                 if fcwe is not None:
                     cwe = fcwe.text
                 else:
-                    cwe = "NONE"
+                    cwe = None
 
                 desc = vuln.find('{https://www.owasp.org/index.php/OWASP_Dependency_Check#1.2}description')
                 if desc is not None:
@@ -56,17 +61,23 @@ def read_files(name_of_file, report_data):
                                  description]
                     report_data.append(line_item)
 
+    if item_count == len(report_data):
+        print "Found 0 vulns found (adding empty line) in file: " + name_of_file
+        line_item = [project_name, report_date, "None", "None", -1, "None", "None"]
+        report_data.append(line_item)
+    else:
+        print "Found " + str(len(report_data) + item_count) + " vulns in file: " + name_of_file
+
 
 def analyse_xml_reports(sourcedir):
     report_data = []
     for root, dirs, files in os.walk(sourcedir):
         for file in files:
             if file.endswith(".xml"):
-                print 'reading: ' + os.path.join(root, file)
                 read_files(os.path.join(root, file), report_data)
     return report_data
 
 
 headerLine = ["projectName", "reportDate", "fileName", "vulnname", "cvssScore", "cwe", "description"]
 df = pandas.DataFrame(analyse_xml_reports(source_dir), columns=headerLine)
-df.to_excel("owasp_dependency_metrics.xls")
+df.to_excel("nexus_metrics.xls")
