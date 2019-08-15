@@ -114,6 +114,7 @@ class DataAnalyser:
                 if str_msg.startswith("Filename:"):
                     lineitem = []
                     lineitem.append(dat['project'])
+                    lineitem.append(dat['key'])
                     attributes = str_msg.split("|")
                     i = 0
 
@@ -140,7 +141,7 @@ class DataAnalyser:
                     lineitem_list.append(lineitem)
 
         df3 = pandas.DataFrame(lineitem_list,
-                               columns=("project", "filename", "CVE", "CVSS", "CWE", "CWE-Description", "comment"))
+                               columns=("project", "key", "filename", "CVE", "CVSS", "CWE", "CWE-Description", "comment"))
         return df3
 
     def analyse_wontfix_issues(self, dataframe):
@@ -164,9 +165,11 @@ class DataAnalyser:
         :return: array app | count
         """
         result = []
+
         for app in applicationslist:
+            df_analysis = dataframe[(dataframe['project'] == app)]
             counts = 0
-            counts += dataframe[(dataframe['project'] == app) & dataframe['CWE'].isin(cwe_filter)]['project'].count()
+            counts += len(df_analysis[(df_analysis['CWE'].isin(cwe_filter))].index)
             result.append([app, counts])
 
         return result
