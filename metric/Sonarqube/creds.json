@@ -1,0 +1,13 @@
+{
+  "db_config":{
+    "user":"username",
+    "password":"password",
+    "host":"ip-address",
+    "database":"database name",
+    "port":"port"
+   },
+   "creds":{
+      "sonar_install_1":"access_token",
+      "sonar_install_2":"access_token"
+   }
+}
